@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# 环境变量与密钥（严禁提交）
+.env
+.env.*
+*.key
+secrets/
+
+# 数据与模型文件（大文件不入库）
+data/raw/
+*.db
+*.sqlite3
+*.faiss
+*.pkl
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node（如后续有前端）
+node_modules/
