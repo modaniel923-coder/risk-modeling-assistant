@@ -1035,9 +1035,13 @@ function _renderIVRankingContent(ranking) {
     ranking.forEach(item => {
         const color = colorIV(item.iv);
         const active = state.selectedFeature === item.feature ? ' feature-active' : '';
-        html += `<div class="feature-item${active}" onclick="selectFeature('${escapeHTML(item.feature)}')">`
-            + `<div class="feature-name">${escapeHTML(item.feature)}</div>`
-            + `<div class="feature-iv-bar">${renderBar(item.iv, maxIV, color)}</div>`
+        const width = maxIV > 0 ? Math.min(100, Math.max(0, (item.iv / maxIV) * 100)) : 0;
+        html += `<div class="feature-item${active}" onclick="renderWOETable('${escapeHTML(item.feature)}')">`
+            + `<div class="feature-name" title="${escapeHTML(item.feature)}">${escapeHTML(item.feature)}</div>`
+            + `<div class="feature-iv">${formatNumber(item.iv, 4)}</div>`
+            + `<div class="feature-iv-bar">`
+            + `<div class="iv-bar-bg"><div class="iv-bar-fill" style="width:${width}%;background-color:${color};"></div></div>`
+            + `</div>`
             + `<span class="feature-strength" style="color:${color};">${escapeHTML(item.strength || '')}</span>`
             + `</div>`;
     });

@@ -801,8 +801,17 @@
           const m = path.match(/\/binning\/woe-table\/(.+)$/);
           const f = m ? m[1] : "";
           if (!LS.binner) return buildResponse({ feature: f, woe_table: [] });
-          const wm = LS.binner.woe_maps[f] || {};
-          const bins = Object.entries(wm).map(([bin, woe]) => ({ bin, woe: round4(woe) }));
+          const feat = (LS.woeResult && LS.woeResult.result && LS.woeResult.result.features || []).find((x) => x.feature === f);
+          const bins = feat && feat.bins ? feat.bins.map((b) => ({
+            bin: String(b.bin),
+            total: b.total,
+            bad: b.bad,
+            good: b.good,
+            bad_rate: b.bad_rate,
+            woe: round4(b.woe),
+            iv: round4(b.iv),
+            pct: b.pct,
+          })) : [];
           return buildResponse({ feature: f, woe_table: bins });
         }
         case "/api/v1/training/run": {

@@ -186,13 +186,15 @@
           <div id="eda-categorical-content" style="overflow-x:auto"></div>
         </div>
       </div>
-      <div class="card">
-        <div class="card-title">目标变量分布</div>
-        <div id="eda-target-content"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">相关性矩阵</div>
-        <div id="eda-correlation-content" style="overflow-x:auto"></div>
+      <div class="card-grid two-col equal-charts">
+        <div class="card">
+          <div class="card-title">目标变量分布</div>
+          <div id="eda-target-content"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">相关性矩阵</div>
+          <div id="eda-correlation-content" style="overflow-x:auto"></div>
+        </div>
       </div>
     </div>
     <div class="footer-actions">
@@ -229,7 +231,7 @@
     </div>
     <div id="binning-content" style="display:none">
       <div class="stat-row" id="binning-stats"></div>
-      <div class="card-grid two-col">
+      <div class="card-grid two-col binning-split">
         <div class="card">
           <div class="card-title">IV值排序</div>
           <div id="iv-ranking-content"></div>
