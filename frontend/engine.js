@@ -568,8 +568,10 @@
     }
     const predTr = Xtr.map((x) => sigmoid(matVec([x], coef)[0]));
     const predTe = Xte.map((x) => sigmoid(matVec([x], coef)[0]));
-    const trainMetrics = evalMetrics(ytr, predTr);
-    const testMetrics = evalMetrics(yte, predTe);
+    const scoreTr = predTr.map((p) => Math.round(baseScore + factor * Math.log(Math.max(p / (1 - p), 1e-4))));
+    const scoreTe = predTe.map((p) => Math.round(baseScore + factor * Math.log(Math.max(p / (1 - p), 1e-4))));
+    const trainMetrics = evalMetrics(ytr, predTr, scoreTr);
+    const testMetrics = evalMetrics(yte, predTe, scoreTe);
     return {
       model_type: "Logistic Regression", features: selected, n_features: selected.length,
       coef: Object.fromEntries(woeCols.map((c, i) => [c, round6(coef[i])])),
@@ -580,11 +582,88 @@
     };
   }
 
-  function evalMetrics(y, pred) {
+  function evalMetrics(y, pred, scores) {
     const auc = aucScore(y, pred);
-    const { fpr, tpr } = rocCurve(y, pred);
+    const { fpr, tpr, thresholds } = rocCurve(y, pred);
     const ks = Math.max(...tpr.map((t, i) => t - fpr[i]));
-    return { auc: round4(auc), ks: round4(ks), gini: round4(2 * auc - 1), n_samples: y.length };
+    const ksIdx = tpr.map((t, i) => t - fpr[i]).indexOf(ks);
+    const nPoints = Math.min(50, thresholds.length || 1);
+    const step = Math.max(1, Math.floor((thresholds.length || 0) / nPoints));
+    const ksCurve = {
+      ks_max: round4(ks),
+      ks_threshold: round4(thresholds[ksIdx] || 0),
+      fpr: downsample(fpr, step).map(round4),
+      tpr: downsample(tpr, step).map(round4),
+      thresholds: downsample(thresholds, step).map(round4),
+    };
+    return {
+      auc: round4(auc), ks: round4(ks), gini: round4(2 * auc - 1), n_samples: y.length,
+      ks_curve: ksCurve, lift: calcLift(y, pred, 10),
+      score_distribution: histogram(scores || pred, 20),
+      confusion: calcConfusion(y, pred, 0.5),
+    };
+  }
+
+  function downsample(arr, step) {
+    if (!arr || !arr.length) return [];
+    const out = [];
+    for (let i = 0; i < arr.length; i += step) out.push(arr[i]);
+    return out;
+  }
+
+  function calcLift(y, pred, nBins) {
+    const n = y.length;
+    const actualBins = Math.min(nBins, n);
+    const order = Array.from({ length: n }, (_, i) => i).sort((a, b) => pred[b] - pred[a]);
+    const totalBad = y.reduce((s, v) => s + v, 0);
+    const totalBadRate = totalBad / n;
+    const results = [];
+    let cumBad = 0, cumN = 0;
+    for (let d = 0; d < actualBins; d++) {
+      const start = Math.floor((d * n) / actualBins);
+      const end = Math.floor(((d + 1) * n) / actualBins);
+      let grpN = 0, bad = 0;
+      for (let i = start; i < end; i++) { grpN++; bad += y[order[i]]; }
+      cumN += grpN; cumBad += bad;
+      results.push({
+        decile: d + 1, samples: grpN, bad,
+        bad_rate: grpN > 0 ? round4(bad / grpN) : 0,
+        cum_bad_rate: cumN > 0 ? round4(cumBad / cumN) : 0,
+        lift: grpN > 0 && totalBadRate > 0 ? round2((bad / grpN) / totalBadRate) : 0,
+        cum_lift: cumN > 0 && totalBadRate > 0 ? round2((cumBad / cumN) / totalBadRate) : 0,
+      });
+    }
+    return results;
+  }
+
+  function calcConfusion(y, pred, threshold) {
+    let tp = 0, fp = 0, tn = 0, fn = 0;
+    for (let i = 0; i < y.length; i++) {
+      const pl = pred[i] >= threshold ? 1 : 0;
+      if (pl === 1 && y[i] === 1) tp++;
+      else if (pl === 1 && y[i] === 0) fp++;
+      else if (pl === 0 && y[i] === 0) tn++;
+      else if (pl === 0 && y[i] === 1) fn++;
+    }
+    const precision = tp + fp > 0 ? tp / (tp + fp) : 0;
+    const recall = tp + fn > 0 ? tp / (tp + fn) : 0;
+    return { tp, fp, tn, fn, precision: round4(precision), recall: round4(recall), f1: round4(precision + recall > 0 ? 2 * precision * recall / (precision + recall) : 0), threshold };
+  }
+
+  function histogram(arr, nBins) {
+    if (!arr || !arr.length) return { bins: [], counts: [] };
+    const clean = arr.filter((v) => v === v);
+    const min = Math.min(...clean), max = Math.max(...clean);
+    if (min === max) return { bins: [min, max], counts: [clean.length] };
+    const edges = [];
+    for (let i = 0; i <= nBins; i++) edges.push(min + (i * (max - min)) / nBins);
+    const counts = new Array(nBins).fill(0);
+    for (const v of clean) {
+      let idx = Math.floor(((v - min) / (max - min)) * nBins);
+      if (idx >= nBins) idx = nBins - 1;
+      counts[idx]++;
+    }
+    return { bins: edges.map(round4), counts };
   }
 
   function aucScore(y, pred) {
@@ -621,7 +700,7 @@
       fpr.push(nNeg ? fp / nNeg : 0);
       tpr.push(nPos ? tp / nPos : 0);
     }
-    return { fpr, tpr };
+    return { fpr, tpr, thresholds };
   }
 
   function mulberry32(a) {
