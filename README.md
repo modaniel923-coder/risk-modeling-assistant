@@ -105,3 +105,7 @@ risk-modeling-assistant/
 ## 作者
 
 modaniel923 · 前保险精算师，现海外信贷风控从业者，AI Builder 转型中
+
+---
+
+📄 English documentation: [README_EN.md](README_EN.md)
