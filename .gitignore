@@ -7,6 +7,7 @@ build/
 .venv/
 venv/
 env/
+.pytest_cache/
 
 # 环境变量与密钥（严禁提交）
 .env
@@ -14,7 +15,22 @@ env/
 *.key
 secrets/
 
-# 数据与模型文件（大文件不入库）
+# 大数据集（保留 german_credit.csv 作为内置示例）
+backend/data/give_me_some_credit.csv
+backend/data/taiwan_credit_default.csv
+backend/data/taiwan_credit_default.xls
+backend/data/german_credit_openml.csv
+
+# 备份与临时脚本
+*.bak
+*.bak3
+*.v2bak
+*.opt_bak
+frontend/fix_*.py
+frontend/optimize_ui.py
+dev-summary/
+
+# 数据与模型文件
 data/raw/
 *.db
 *.sqlite3
@@ -33,5 +49,5 @@ data/raw/
 .DS_Store
 Thumbs.db
 
-# Node（如后续有前端）
+# Node
 node_modules/

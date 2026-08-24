@@ -1,53 +1,106 @@
 # 风控建模助手 Risk Modeling Assistant
 
-> 零代码搭建信用风险评分卡模型：从原始数据到可解释的风控模型，业务人员也能独立完成。
+> 零代码信用评分卡建模平台：从原始数据到可解释的风控评分卡，业务人员也能独立完成。
 
-## 解决什么问题
+一个面向风控 / 精算 / 策略人员的可视化建模工具。无需写代码，即可完成 **数据接入 → 自动 EDA → WOE/IV 分箱 → 评分卡训练 → 模型评估 → 可解释报告 → 多格式导出** 的完整流程。
 
-在现金贷、消费信贷等场景中，风控评分卡是授信决策的核心，但建模流程专业门槛高：
-
-- 业务人员有数据和经验，但不会写代码，无法独立完成模型开发；
-- 外包给数据科学团队，沟通成本高，业务逻辑在传递中失真；
-- 模型建完了缺乏可解释性，策略同事不敢直接上线使用。
-
-**风控建模助手**把评分卡建模的全流程（数据接入 → 自动 EDA → 特征工程 → 模型训练 → 评估报告 → 策略导出）封装成零代码工作流，让风控策略、精算、运营等业务角色也能快速产出可解释、可落地的评分卡模型。
-
-## 核心能力
+## 功能特性（已全部实现）
 
 | 模块 | 功能 |
 |------|------|
-| 数据接入 | 支持 CSV / Excel 上传，自动识别字段类型与缺失情况 |
-| 自动 EDA | 一键生成目标变量分布、特征统计、相关性分析 |
-| 特征工程 | WOE / IV 自动分箱，支持手动调整分箱边界 |
-| 评分卡建模 | 基于 Logistic Regression 的标准评分卡训练 |
-| 模型评估 | KS、AUC、混淆矩阵、Lift 曲线、PSI 稳定性 |
-| 可解释输出 | 单样本评分明细、特征贡献度、规则化策略导出 |
-| AI Copilot | 自然语言解读模型结果、生成风控策略建议 |
+| 数据接入 | 上传 CSV/Excel，自动推断字段类型、识别目标列、输出缺失率统计 |
+| 自动 EDA | 目标分布、单变量统计、相关性矩阵、缺失值概览 |
+| WOE/IV 分箱 | 决策树最优分箱、IV 计算与特征筛选（支持手动调整分箱边界） |
+| 评分卡建模 | 逻辑回归训练，PDO/基础分/翻倍分参数化，输出标准评分卡表 |
+| 模型评估 | KS、AUC/Gini、混淆矩阵、Lift 曲线、评分分布、PSI 稳定性 |
+| 可解释输出 | 算法选型解释、特征重要性、单样本评分明细与特征贡献度 |
+| 多格式导出 | 一键导出 HTML 报告 / Python 评分代码 / SQL 评分规则 |
+| 部署与监控 | 部署指南、PSI 监控看板 |
 
-## 产品 Roadmap
+## 技术栈
 
-- [ ] v0.1 数据上传 + 自动 EDA 报告
-- [ ] v0.2 WOE / IV 自动分箱与特征筛选
-- [ ] v0.3 评分卡模型训练与评估
-- [ ] v0.4 模型可解释报告 + 单样本评分明细
-- [ ] v0.5 AI Copilot：模型解读与策略建议
-- [ ] v1.0 Web 可视化界面 + 模型版本管理
-
-## 技术架构
-
-- **后端**：Python + FastAPI
-- **建模核心**：pandas, scikit-learn, scorecardpy / optbinning
-- **LLM / AI Copilot**：DeepSeek / GPT-4o + RAG（挂载建模方法论与业务知识库）
-- **前端**：Web Demo（React / Gradio，待确定）
-- **部署**：Docker + GitHub Actions CI/CD
+- **前端**：HTML + CSS + 原生 JS（纯静态 SPA，无需构建）
+- **后端**：Python + FastAPI（25+ RESTful 接口）
+- **算法引擎**：pandas / numpy / scikit-learn（WOE/IV + 逻辑回归评分卡）
+- **数据**：内置 German Credit 示例数据集（开箱即用）
 
 ## 快速开始
 
+### 1. 安装依赖
+
 ```bash
-git clone https://github.com/modaniel923-coder/risk-modeling-assistant.git
-cd risk-modeling-assistant
-# 安装依赖（待项目初始化后补充）
+pip install -r requirements.txt
+# 如有代理导致 SSL 错误：
+# pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
+
+### 2. 启动后端
+
+```bash
+python -m uvicorn backend.main:app --host 127.0.0.1 --port 8080
+```
+
+### 3. 打开前端
+
+直接双击 `frontend/index.html`，或在浏览器访问。前端默认调用 `http://127.0.0.1:8080`。
+
+> 也可使用 `start.bat` 一键启动（Windows）。
+
+### 4. 运行测试
+
+```bash
+pytest tests/
+# 或使用 run_tests.bat（Windows）
+```
+
+## 项目结构
+
+```
+risk-modeling-assistant/
+├── frontend/              # 纯静态前端（10 个功能页面）
+│   ├── index.html         # 主页面
+│   ├── styles.css         # 样式
+│   └── app.js             # 交互逻辑与 API 调用
+├── backend/
+│   ├── main.py            # 应用入口
+│   ├── api/routes.py      # FastAPI 路由（25+ 接口）
+│   ├── engine/            # 核心算法引擎
+│   │   ├── data_loader.py # 数据加载 + 类型推断
+│   │   ├── eda.py         # EDA 分析
+│   │   ├── woe_iv.py      # WOE/IV 分箱
+│   │   ├── scorecard.py   # 评分卡训练
+│   │   ├── evaluator.py   # 模型评估
+│   │   ├── explainer.py   # 模型解释
+│   │   └── exporter.py    # 多格式导出
+│   └── data/              # 内置示例数据（german_credit.csv）
+├── tests/                 # 54 个测试用例
+├── requirements.txt
+├── start.bat              # 一键启动
+└── run_tests.bat          # 一键测试
+```
+
+## API 接口一览
+
+| 方法 | 路径 | 功能 |
+|------|------|------|
+| GET | /api/v1/health | 健康检查 |
+| POST | /api/v1/data/upload | 上传数据文件 |
+| POST | /api/v1/data/load-sample | 加载内置示例数据 |
+| GET | /api/v1/data/summary | 数据概要 |
+| GET | /api/v1/data/preview | 数据预览 |
+| POST | /api/v1/eda/, run | 执行 EDA 分析 |
+| POST | /api/v1/binning/run | 执行 WOE 分箱 |
+| GET | /api/v1/binning/iv-ranking | IV 排名 |
+| GET | /api/v1/binning/woe/{feature} | 指定特征 WOE 表 |
+| POST | /api/v1/training/run | 训练评分卡 |
+| GET | /api/v1/scorecard/table | 评分卡表 |
+| POST | /api/v1/evaluation/run | 模型评估 |
+| POST | /api/v1/explain/sample | 单样本解释 |
+| POST | /api/v1/export/html | 导出 HTML |
+| POST | /api/v1/export/python | 导出 Python |
+| POST | /api/v1/export/sql | 导出 SQL |
+
+完整接口见仓库内 `backend/api/routes.py`。
 
 ## 作者
 
