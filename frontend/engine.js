@@ -254,7 +254,7 @@
         const v = r[col];
         if (v === "" || v === null || v === undefined) { miss++; continue; }
         const k = String(v);
-        counts[k] += (counts[k] || 0) + 1;
+        counts[k] = (counts[k] || 0) + 1;
       }
       const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5)
         .reduce((o, [k, v]) => { o[k] = v; return o; }, {});
@@ -669,7 +669,8 @@
           const text = await res.text();
           const { rows } = parseCSV(text);
           LS.rows = rows;
-          const { tcol, numeric, categorical, features } = inferColumns(rows, "class");
+          const tcolReq = (body && body.target_col) || "class";
+          const { tcol, numeric, categorical, features } = inferColumns(rows, tcolReq);
           LS.summary = computeSummary(rows, tcol, numeric, categorical, features);
           return buildResponse({ status: "ok", summary: LS.summary, preview: rows.slice(0, 5) });
         }
@@ -680,7 +681,15 @@
           const { tcol, numeric, categorical, features } = inferColumns(rows, tcolReq);
           LS.rows = rows;
           LS.summary = computeSummary(rows, tcol, numeric, categorical, features);
+          LS.lastSource = { type: "upload", text };
           return buildResponse({ status: "ok", summary: LS.summary, preview: rows.slice(0, 5) });
+        }
+        case "/api/v1/data/set-target": {
+          const tcolReq = (body && body.target_col) || (LS.summary && LS.summary.target_col) || "class";
+          if (!LS.rows || !LS.rows.length) return buildResponse({ status: "error", message: "no data loaded" }, 400);
+          const { tcol, numeric, categorical, features } = inferColumns(LS.rows, tcolReq);
+          LS.summary = computeSummary(LS.rows, tcol, numeric, categorical, features);
+          return buildResponse({ status: "ok", summary: LS.summary, preview: LS.rows.slice(0, 5) });
         }
         case "/api/v1/data/summary":
           return buildResponse(LS.summary);

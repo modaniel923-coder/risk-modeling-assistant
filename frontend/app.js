@@ -49,6 +49,8 @@ const state = {
     scorecard: null,
     ivRanking: null,
     targetCol: null,
+    lastUploadedText: null,
+    isSample: false,
 };
 
 /* ============================================================
@@ -573,10 +575,14 @@ function _renderExistingData(screen) {
  */
 async function loadSample() {
     try {
-        const res = await api.post('/api/v1/data/load-sample');
+        var ts = document.getElementById('target-col-select');
+        const targetCol = (ts && ts.value) ? ts.value : 'class';
+        const res = await api.post('/api/v1/data/load-sample', { target_col: targetCol });
         if (res.status === 'ok') {
             state.dataSummary = res.summary;
             state.dataPreview = res.preview;
+            state.isSample = true;
+            state.lastUploadedText = null;
             displaySummary(res);
             showToast('\u6837\u4F8B\u6570\u636E\u52A0\u8F7D\u6210\u529F', 'success');
         } else {
@@ -614,6 +620,8 @@ async function uploadFile() {
         if (res.status === 'ok') {
             state.dataSummary = res.summary;
             state.dataPreview = res.preview;
+            state.lastUploadedText = text;
+            state.isSample = false;
             displaySummary(res);
             showToast(`\u6587\u4EF6 "${escapeHTML(file.name)}" \u4E0A\u4F20\u6210\u529F`, 'success');
         } else {
@@ -2074,6 +2082,47 @@ async function loadAuditReport() {
     }
 }
 
+/**
+ * Handle target column dropdown change: recompute summary with the new target.
+ */
+async function onTargetColChange() {
+    const ts = document.getElementById('target-col-select');
+    if (!ts || !ts.value) return;
+    const targetCol = ts.value;
+    if (!state.dataSummary) return;
+    try {
+        if (CONFIG.apiBase === 'local' && typeof window.RiskEngineLocal !== 'undefined') {
+            const r = await api.post('/api/v1/data/set-target', { target_col: targetCol });
+            if (r.status === 'ok') {
+                state.dataSummary = r.summary;
+                state.dataPreview = r.preview;
+                displaySummary(r);
+                showToast(`目标列已切换为 ${escapeHTML(targetCol)}`, 'success');
+            }
+        } else if (state.isSample) {
+            const r = await api.post('/api/v1/data/load-sample', { target_col: targetCol });
+            if (r.status === 'ok') {
+                state.dataSummary = r.summary;
+                state.dataPreview = r.preview;
+                displaySummary(r);
+                showToast(`目标列已切换为 ${escapeHTML(targetCol)}`, 'success');
+            }
+        } else if (state.lastUploadedText) {
+            const r = await api.post('/api/v1/data/upload', { text: state.lastUploadedText, target_col: targetCol });
+            if (r.status === 'ok') {
+                state.dataSummary = r.summary;
+                state.dataPreview = r.preview;
+                displaySummary(r);
+                showToast(`目标列已切换为 ${escapeHTML(targetCol)}`, 'success');
+            }
+        } else {
+            showToast('请先上传或加载数据', 'warning');
+        }
+    } catch (error) {
+        showToast(`切换目标列失败: ${error.message}`, 'error');
+    }
+}
+
 /* ============================================================
  * Event Listeners Setup
  * ============================================================ */
@@ -2093,6 +2142,9 @@ function setupEventListeners() {
     // --- Upload screen ---
     const btnLoadSample = document.getElementById('btn-load-sample');
     if (btnLoadSample) btnLoadSample.addEventListener('click', loadSample);
+
+    const selTargetCol = document.getElementById('target-col-select');
+    if (selTargetCol) selTargetCol.addEventListener('change', onTargetColChange);
 
     const btnChooseFile = document.getElementById('btn-choose-file');
     if (btnChooseFile) btnChooseFile.addEventListener('click', () => {
@@ -2233,10 +2285,14 @@ async function runAllSteps() {
         if (!state.dataSummary) {
             showToast('正在加载数据...', 'info');
             try {
-                var r = await api.post('/api/v1/data/load-sample');
+                var ts = document.getElementById('target-col-select');
+                const targetCol = (ts && ts.value) ? ts.value : 'class';
+                var r = await api.post('/api/v1/data/load-sample', { target_col: targetCol });
                 if (r.status === 'ok') {
                     state.dataSummary = r.summary;
                     state.dataPreview = r.preview;
+                    state.isSample = true;
+                    state.lastUploadedText = null;
                     displaySummary(r);
                     showToast('数据加载完成', 'success');
                 } else { showToast('请先上传数据', 'error'); return; }
