@@ -2462,3 +2462,151 @@ textarea.input {
 .data-preview-wrapper{overflow-x:auto;max-height:400px;border:1px solid #e2e8f0;border-radius:6px}
 .data-preview-wrapper table{font-size:.75rem}
 .data-preview-wrapper th{position:sticky;top:0;background:#f8fafc;z-index:1}
+
+/* ==========================================================================
+   Prototype Alignment — 产品原型设计.html（minimal / light）
+   Strictly follow the prototype: white sidebar, #f0f4f8 canvas, flat 1px
+   cards, 10px radius, Outfit + JetBrains Mono, uniform chart dimensions.
+   ========================================================================== */
+:root {
+  --color-bg: #f0f4f8;
+  --color-bg-alt: #f8fafc;
+  --color-card-bg: #ffffff;
+  --color-sidebar: #ffffff;
+  --color-sidebar-hover: #f1f5f9;
+  --color-sidebar-active: rgba(37, 99, 235, 0.08);
+  --color-text: #1a2332;
+  --color-text-secondary: #6b7c93;
+  --color-text-muted: #6b7c93;
+  --color-border: #e2e8f0;
+  --color-border-light: #e2e8f0;
+  --color-divider: #e2e8f0;
+  --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
+  --color-success: #059669;
+  --color-success-bg: #d1fae5;
+  --color-danger: #ef4444;
+  --color-danger-bg: #fee2e2;
+  --color-warning: #f59e0b;
+  --color-warning-bg: #fef3c7;
+  --font-display: 'Outfit', -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --chart-h: 300px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 2px 8px rgba(15, 23, 42, 0.05);
+}
+
+/* ---- Sidebar: light theme (prototype .app-sidebar) ---- */
+.sidebar { border-right: 1px solid var(--color-border); }
+.sidebar-header { border-bottom: 1px solid var(--color-border); }
+.sidebar-title { color: var(--color-text); }
+.sidebar-title .sidebar-subtitle { color: var(--color-text-muted); }
+.sidebar-footer { border-top: 1px solid var(--color-border); }
+.sidebar-section-label { color: var(--color-text-muted); }
+.nav-item { color: var(--color-text-secondary); border-left-color: transparent; }
+.nav-item:hover { background-color: var(--color-bg-alt); color: var(--color-text); }
+.nav-item.active {
+  background-color: var(--color-sidebar-active);
+  color: var(--color-primary);
+  border-left-color: var(--color-primary);
+}
+.sidebar-user-name { color: var(--color-text); }
+.sidebar-user-role { color: var(--color-text-muted); }
+.sidebar-user-avatar { background-color: var(--color-primary); }
+
+/* ---- Step bar circles (HTML uses .step-circle / .step-line) ---- */
+.step-circle {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+  background-color: var(--color-border-light); color: var(--color-text-secondary);
+  border: 2px solid var(--color-border); flex-shrink: 0; transition: all .2s;
+}
+.step-item.active .step-circle { background-color: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.step-item.completed .step-circle { background-color: var(--color-success); color: #fff; border-color: var(--color-success); }
+.step-line { width: 28px; height: 2px; background-color: var(--color-border); border-radius: 2px; }
+.step-item.completed .step-line { background-color: var(--color-success); }
+
+/* ---- Cards: flat, 1px border, 10px radius (prototype .card) ---- */
+.card { box-shadow: none; border: 1px solid var(--color-border); border-radius: 10px; }
+.card:hover { box-shadow: none; }
+.card-header { border-bottom: 1px solid var(--color-border); }
+.card-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; }
+
+/* ---- Typography: display + mono fonts ---- */
+body { font-size: 13px; }
+.screen-header h2, .page-header h1 { font-family: var(--font-display); letter-spacing: -0.01em; }
+.stat-value, .metric-value, .split-ratio-display { font-family: var(--font-display); }
+.step-label, .nav-item, .card-title { font-family: var(--font-display); }
+
+/* ---- Screen header: title + muted description (prototype .step-header) ---- */
+.screen-header {
+  display: flex; align-items: baseline; gap: .75rem; margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+.screen-header p { margin: 0; color: var(--color-text-muted); margin-left: auto; }
+
+/* ==========================================================================
+   Charts — uniform height & balanced layout
+   ========================================================================== */
+.chart-container { border-radius: 10px; padding: 1.25rem; border: 1px solid var(--color-border-light); }
+
+/* CSS bar chart (target distribution) */
+.bar-chart {
+  height: var(--chart-h);
+  display: flex; align-items: flex-end; gap: 10px;
+  padding: 1rem .5rem 0;
+}
+.bar-chart-col {
+  flex: 1; height: 100%; min-width: 0;
+  display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+}
+.bar-chart-bar {
+  width: 100%; max-width: 60px; border-radius: 6px 6px 0 0;
+  display: flex; align-items: flex-start; justify-content: center;
+  transition: height .4s ease;
+}
+.bar-chart-count { font-size: 11px; color: #fff; padding-top: 5px; font-family: var(--font-mono); }
+.bar-chart-label {
+  margin-top: 7px; font-size: 11px; color: var(--color-text-secondary);
+  text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+}
+
+/* Histogram (score distribution, PSI comparison) */
+.histogram {
+  height: var(--chart-h);
+  display: flex; align-items: flex-end; gap: 10px;
+  padding: 1rem .5rem 0;
+}
+.histogram-col {
+  flex: 1; height: 100%; min-width: 0;
+  display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+}
+.histogram-bar {
+  width: 100%; max-width: 60px; border-radius: 6px 6px 0 0;
+  display: flex; align-items: flex-start; justify-content: center;
+  transition: height .4s ease;
+}
+.histogram-count { font-size: 11px; color: #fff; padding-top: 5px; font-family: var(--font-mono); }
+.histogram-label {
+  margin-top: 7px; font-size: 11px; color: var(--color-text-secondary);
+  text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+}
+
+/* KS curve (SVG) — fixed height keeps it aligned with other charts */
+.ks-chart { width: 100%; height: var(--chart-h); display: block; }
+
+/* Correlation heatmap */
+.correlation-heatmap { font-family: var(--font-mono); border-radius: 8px; }
+
+/* Equal-height chart cards in two-column grids + charts fill the card */
+.card-grid.two-col { align-items: stretch; gap: 1rem; }
+.card-grid.two-col > .card { height: 100%; display: flex; flex-direction: column; }
+.card-grid.two-col > .card > [id$="-content"],
+.card-grid.two-col > .card > .card-body { flex: 1; }
+
+/* IV ranking bars aligned */
+.feature-iv-bar { flex: 1; }
+.iv-bar-fill { font-family: var(--font-mono); }
