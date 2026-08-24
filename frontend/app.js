@@ -17,7 +17,7 @@ const __urlParams = new URLSearchParams(window.location.search);
 const __apiOverride = __urlParams.get('api');
 
 const CONFIG = {
-    apiBase: __apiOverride || 'http://127.0.0.1:8080',
+    apiBase: __apiOverride || 'local',
     apiPrefix: '/api/v1',
     defaultScreen: 'upload',
     requestTimeout: 120000,
@@ -85,6 +85,15 @@ class RiskModelAPI {
     async _request(url, options = {}, silent = false) {
         if (!silent) showLoading();
         try {
+            // Pure-frontend mode: route to the embedded JS engine (no backend needed).
+            if (this.baseURL === 'local' && typeof window.RiskEngineLocal !== 'undefined') {
+                const method = options.method || 'GET';
+                let body = null;
+                if (options.body) {
+                    body = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+                }
+                return await window.RiskEngineLocal.handle(method, url, body);
+            }
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), CONFIG.requestTimeout);
             options.signal = controller.signal;
@@ -589,12 +598,19 @@ async function uploadFile() {
         return;
     }
     const file = input.files[0];
-    const formData = new FormData();
-    formData.append('file', file);
     var ts = document.getElementById('target-col-select');
-    if (ts && ts.value) formData.append('target_col', ts.value);
+    const targetCol = (ts && ts.value) ? ts.value : 'class';
     try {
-        const res = await api.upload('/api/v1/data/upload', formData);
+        const text = await file.text();
+        let res;
+        if (CONFIG.apiBase === 'local' && typeof window.RiskEngineLocal !== 'undefined') {
+            res = await api.post('/api/v1/data/upload', { text: text, target_col: targetCol });
+        } else {
+            const formData = new FormData();
+            formData.append('file', file);
+            if (targetCol) formData.append('target_col', targetCol);
+            res = await api.upload('/api/v1/data/upload', formData);
+        }
         if (res.status === 'ok') {
             state.dataSummary = res.summary;
             state.dataPreview = res.preview;

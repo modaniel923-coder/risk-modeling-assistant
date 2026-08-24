@@ -46,6 +46,21 @@ python -m uvicorn backend.main:app --host 127.0.0.1 --port 8080
 
 > 也可使用 `start.bat` 一键启动（Windows）。
 
+### 4. 纯前端模式（无需后端 / 在线 Demo）
+
+前端已将核心算法（WOE/IV 分箱、逻辑回归评分卡、KS/AUC 评估、PSI、解释与导出）完整移植到 `frontend/engine.js`，可在 **无后端** 环境下直接运行：
+
+- 默认即「纯前端模式」：打开页面后点击「加载示例数据」即可在浏览器内完成建模全流程，适合静态托管（如 GitHub Pages）。
+- 内置 German Credit 样本数据集（`frontend/german_credit.csv`）随前端一同分发。
+- 如需对接自有后端，可在 URL 追加 `?api=https://你的后端地址` 覆盖默认后端地址；未配置时自动回退到本地引擎。
+
+```
+# GitHub Pages 在线 demo（纯前端，开箱即用）
+https://modaniel923-coder.github.io/risk-modeling-assistant/
+```
+
+> 说明：纯前端模式下「上传自定义 CSV」通过浏览器本地解析，不经过任何服务器，数据不上传。
+
 ### 4. 运行测试
 
 ```bash
@@ -60,8 +75,10 @@ risk-modeling-assistant/
 ├── frontend/              # 纯静态前端（10 个功能页面）
 │   ├── index.html         # 主页面
 │   ├── styles.css         # 样式
-│   └── app.js             # 交互逻辑与 API 调用
-├── backend/
+│   ├── app.js             # 交互逻辑与 API 调用（含本地引擎回退）
+│   ├── engine.js          # 纯 JS 算法引擎（WOE/IV/评分卡/评估/解释/导出，无需后端）
+│   └── german_credit.csv  # 内置示例数据
+├── backend/               # Python + FastAPI 后端（可选，可用 ?api= 接入）
 │   ├── main.py            # 应用入口
 │   ├── api/routes.py      # FastAPI 路由（25+ 接口）
 │   ├── engine/            # 核心算法引擎
@@ -73,6 +90,7 @@ risk-modeling-assistant/
 │   │   ├── explainer.py   # 模型解释
 │   │   └── exporter.py    # 多格式导出
 │   └── data/              # 内置示例数据（german_credit.csv）
+├── docs/                  # GitHub Pages 静态站点（frontend 镜像）
 ├── tests/                 # 54 个测试用例
 ├── requirements.txt
 ├── start.bat              # 一键启动

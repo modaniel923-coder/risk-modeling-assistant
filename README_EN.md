@@ -46,6 +46,21 @@ Open `frontend/index.html` directly in a browser. It calls `http://127.0.0.1:808
 
 > Or use `start.bat` for a one-click launch on Windows.
 
+### Pure-Frontend Mode (no backend / live demo)
+
+The core algorithms (WOE/IV binning, logistic-regression scorecard, KS/AUC evaluation, PSI, interpretation, and export) have been fully ported to `frontend/engine.js`, so the app runs entirely in the browser with **no backend**:
+
+- Default mode is pure-frontend: click "Load Sample Data" to run the full pipeline locally. Ideal for static hosting (e.g. GitHub Pages).
+- The built-in German Credit dataset (`frontend/german_credit.csv`) ships with the frontend.
+- To use your own backend, append `?api=https://your-backend` to the URL; it falls back to the local engine when no backend is configured.
+
+```
+# GitHub Pages live demo (pure frontend):
+https://modaniel923-coder.github.io/risk-modeling-assistant/
+```
+
+> In pure-frontend mode, custom CSV upload is parsed locally in the browser — no data leaves the device.
+
 ### 4. Run tests
 
 ```bash
